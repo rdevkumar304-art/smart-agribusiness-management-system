@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Agribusiness Management System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="hero">
+    <div class="container">
+      <p class="eyebrow">STUDENT PROJECT</p>
+      <h1>Smart Agribusiness Management System</h1>
+      <p>Manage agricultural products, stock, and sales in one simple dashboard.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="notice {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <section class="stats">
+      <article class="stat-card"><span>Products</span><strong>{{ total_products }}</strong></article>
+      <article class="stat-card"><span>Units in stock</span><strong>{{ stock_units }}</strong></article>
+      <article class="stat-card"><span>Total recorded sales</span><strong>₹{{ "%.2f"|format(total_sales) }}</strong></article>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h2>Add agricultural product</h2>
+        <form action="{{ url_for('add_product') }}" method="post" class="form">
+          <label>Product name
+            <input name="name" required maxlength="100" placeholder="e.g. Rice">
+          </label>
+          <label>Category
+            <input name="category" required maxlength="80" placeholder="e.g. Grain">
+          </label>
+          <label>Quantity in stock
+            <input name="quantity" type="number" min="0" step="1" required value="0">
+          </label>
+          <label>Unit price (₹)
+            <input name="price" type="number" min="0" step="0.01" required value="0.00">
+          </label>
+          <button type="submit">Add product</button>
+        </form>
+      </article>
+
+      <article class="panel">
+        <h2>Record a sale</h2>
+        {% if products %}
+        <form action="{{ url_for('record_sale') }}" method="post" class="form">
+          <label>Product
+            <select name="product_id" required>
+              {% for product in products %}
+                <option value="{{ product.id }}">{{ product.name }} ({{ product.quantity }} available)</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>Quantity sold
+            <input name="quantity_sold" type="number" min="1" step="1" required value="1">
+          </label>
+          <button type="submit">Save sale</button>
+        </form>
+        {% else %}
+          <p class="muted">Add a product first, then you can record a sale.</p>
+        {% endif %}
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>Inventory</h2>
+      {% if products %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Product</th><th>Category</th><th>Quantity</th><th>Unit price</th><th>Action</th></tr></thead>
+          <tbody>
+          {% for product in products %}
+            <tr>
+              <td>{{ product.name }}</td>
+              <td>{{ product.category }}</td>
+              <td><span class="pill">{{ product.quantity }}</span></td>
+              <td>₹{{ "%.2f"|format(product.price) }}</td>
+              <td>
+                <form action="{{ url_for('delete_product', product_id=product.id) }}" method="post"
+                      onsubmit="return confirm('Delete this product?');">
+                  <button class="secondary" type="submit">Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <p class="muted">No products yet. Add your first agricultural product above.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Recent sales</h2>
+      {% if sales %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Product</th><th>Quantity sold</th><th>Total value</th><th>Date and time</th></tr></thead>
+          <tbody>
+          {% for sale in sales %}
+            <tr><td>{{ sale.product_name }}</td><td>{{ sale.quantity }}</td>
+              <td>₹{{ "%.2f"|format(sale.total) }}</td><td>{{ sale.sold_at }}</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <p class="muted">Sales will appear here after you record your first sale.</p>
+      {% endif %}
+    </section>
+    <footer>Smart Agribusiness Management System · Learning project</footer>
+  </main>
+</body>
+</html>
